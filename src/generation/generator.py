@@ -1,23 +1,47 @@
 # src/generation/generator.py
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import logging
+
+logger = logging.getLogger(__name__)
 
 class VariantGenerator:
-    def __init__(self, model_name, device="cuda"):
+    def __init__(self, model_name="gpt2-xl", device="cuda"):
         """
         Initialize the generator model.
         """
-        pass
+        self.device = device if torch.cuda.is_available() else "cpu"
+        logger.info(f"Loading generator model: {model_name} on {self.device}")
         
-    def generate(self, prompts, temperature=1.0, top_p=1.0, decoding_strategy="sample"):
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self.model = AutoModelForCausalLM.from_pretrained(model_name).to(self.device)
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+        except Exception as e:
+            logger.error(f"Failed to load model {model_name}: {e}")
+            raise
+
+    def generate(self, prompts, max_new_tokens=200, **kwargs):
         """
         Generate text variants.
         
         Args:
             prompts (list): List of prompt strings.
-            temperature (float): Sampling temperature.
-            top_p (float): Top-p sampling value.
-            decoding_strategy (str): Decoding strategy (e.g., 'sample', 'greedy', 'beam').
+            max_new_tokens (int): Maximum new tokens to generate.
+            **kwargs: Generation arguments (temperature, top_p, etc.).
             
         Returns:
-            list: List of generated texts.
+            list: List of generated texts (including prompt).
         """
-        pass
+        inputs = self.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(self.device)
+        
+        with torch.no_grad():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                pad_token_id=self.tokenizer.eos_token_id,
+                **kwargs
+            )
+            
+        generated_texts = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        return generated_texts
