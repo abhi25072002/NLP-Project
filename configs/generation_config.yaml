@@ -1,0 +1,39 @@
+# Generation Configuration
+# This file controls the generation of OOD variants (temperature, top-p, etc.).
+
+# Base model for generation (can be different from detection models)
+generator_model:
+  name: "gpt2-xl" # or "meta-llama/Llama-2-7b-hf", etc.
+  device: "cuda"
+
+# Output directory for generated variants
+output_dir: "data/generated"
+
+# Variants to generate
+variants:
+  temperature:
+    values: [0.1, 0.5, 0.7, 1.0, 1.2, 1.5]
+    base_top_p: 1.0 # Keep top_p constant when varying temperature
+    
+  top_p:
+    values: [0.8, 0.9, 0.95, 0.99]
+    base_temperature: 1.0 # Keep temperature constant when varying top_p
+    
+  decoding_strategies:
+    - name: "greedy"
+      do_sample: false
+    - name: "beam_search"
+      num_beams: 4
+      do_sample: false
+      
+  paraphrase:
+    model_name: "Helsinki-NLP/opus-mt-en-de" # and de-en
+    target_languages: ["de", "fr", "es"] # Intermediate languages for back-translation
+    
+  held_out:
+    generators: ["opt-1.3b", "bloom-1b7"] # Models not seen during training
+
+# Prompt settings
+prompts:
+  source: "turingbench" # Use prompts from TuringBench
+  max_new_tokens: 200

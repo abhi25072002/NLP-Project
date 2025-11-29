@@ -1,0 +1,31 @@
+# Evaluation Configuration
+# This file defines the metrics and reporting settings.
+
+metrics:
+  - "accuracy"
+  - "precision"
+  - "recall"
+  - "f1"
+  - "auc_roc"
+  - "auc_pr"
+  - "tpr_at_fpr_0.01" # 1% FPR
+  - "tpr_at_fpr_0.001" # 0.1% FPR
+  - "tpr_at_fpr_0.0001" # 0.01% FPR
+  - "ece" # Expected Calibration Error
+
+plots:
+  - "roc_curve"
+  - "pr_curve"
+  - "calibration_curve"
+  - "confusion_matrix"
+  - "score_distribution" # Histogram of scores for human vs machine
+
+reporting:
+  output_dir: "reports"
+  save_tables: true # Save metrics as CSV/LaTeX tables
+  save_plots: true # Save plots as PNG/PDF
+  
+# Specific settings for Binoculars evaluation
+binoculars:
+  threshold_strategy: "f1_max" # or "fixed", "fpr_controlled"
+  fixed_threshold: 0.9012

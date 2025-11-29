@@ -1,0 +1,29 @@
+# Data Configuration
+# This file controls how the TuringBench dataset is loaded, split, and processed.
+
+dataset:
+  name: "turingbench"
+  hf_path: "turingbench/TuringBench" # Adjust if different on HF
+  cache_dir: "data/hf_cache"
+
+splitting:
+  seed: 42
+  train_ratio: 0.6
+  val_ratio: 0.2
+  test_ratio: 0.2
+  # Strategy: 'prompt_level' ensures all variants of a prompt stay in the same split
+  strategy: "prompt_level" 
+  output_dir: "data/splits"
+
+processing:
+  max_length: 512
+  truncation: true
+  padding: "max_length"
+  prompt_length: 50 # Number of tokens to use as prompt for re-generation
+
+# Paths to store the master table and processed datasets
+paths:
+  master_table: "data/master_table.jsonl"
+  train_file: "data/train.jsonl"
+  val_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"

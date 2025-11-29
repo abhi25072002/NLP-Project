@@ -1,0 +1,42 @@
+# Model Configuration
+# This file defines the hyperparameters and architectures for supervised models and Binoculars.
+
+supervised:
+  tfidf_lr:
+    ngram_range: [1, 2]
+    max_features: 50000
+    C: 1.0
+    solver: "liblinear"
+    
+  cnn:
+    embedding_dim: 100
+    num_filters: 100
+    filter_sizes: [3, 4, 5]
+    dropout: 0.5
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 10
+    
+  roberta:
+    model_name: "roberta-base"
+    learning_rate: 2.0e-5
+    batch_size: 16
+    epochs: 3
+    weight_decay: 0.01
+    warmup_steps: 500
+    max_seq_length: 512
+
+binoculars:
+  observer_model: "tiiuae/falcon-7b"
+  performer_model: "tiiuae/falcon-7b-instruct"
+  batch_size: 8
+  max_token_observed: 512
+  mode: "low-fpr" # 'accuracy', 'low-fpr', etc.
+
+# General training settings
+training:
+  seed: 42
+  output_dir: "checkpoints/"
+  save_best_model: true
+  early_stopping_patience: 3
+  device: "cuda" # or "cpu", "mps"
