@@ -1,3 +1,3 @@
 # src/generation/__init__.py
-from .generator import generate_variants
-from .paraphrase import backtranslate
+from .generator import VariantGenerator
+from .paraphrase import BackTranslator
