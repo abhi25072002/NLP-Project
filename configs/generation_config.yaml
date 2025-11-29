@@ -3,8 +3,9 @@
 
 # Base model for generation (can be different from detection models)
 generator_model:
-  name: "gpt2-xl" # or "meta-llama/Llama-2-7b-hf", etc.
+  name: "meta-llama/Llama-2-7b-chat-hf" # Recommended: "meta-llama/Llama-2-13b-chat-hf" or "meta-llama/Meta-Llama-3-8B-Instruct" if GPU allows
   device: "cuda"
+  # Note: You need a HuggingFace token for Llama models. Run `huggingface-cli login` first.
 
 
 
@@ -13,17 +14,17 @@ default:
   temperature: 0.7
   top_p: 0.95
   do_sample: true
-  max_new_tokens: 200
+  max_new_tokens: 256
 
 # Variants to generate (for robustness testing)
 variants:
   temperature:
     values: [0.1, 0.3, 0.5, 0.7, 1.0, 1.2, 1.5]
-    base_top_p: 1.0 # Keep top_p constant when varying temperature
+    base_top_p: 0.95 # Aligned with default
     
   top_p:
     values: [0.8, 0.9, 0.95, 0.99]
-    base_temperature: 1.0 # Keep temperature constant when varying top_p
+    base_temperature: 0.7 # Aligned with default
     
   decoding_strategies:
     - name: "greedy"
@@ -45,4 +46,4 @@ variants:
 # Prompt settings
 prompts:
   source: "turingbench" # Use prompts from TuringBench
-  max_new_tokens: 200
+  max_new_tokens: 256

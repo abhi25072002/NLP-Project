@@ -52,6 +52,12 @@ def main():
     batch_size = 8 # Adjust based on GPU memory
     prompts = [row['prompt'] for row in master_table]
     
+    # ... (previous code)
+
+    # Load default generation settings
+    default_kwargs = config.get("default", {})
+    logger.info(f"Global default settings: {default_kwargs}")
+
     # Define generation tasks based on mode
     tasks = []
     
@@ -59,41 +65,57 @@ def main():
         temps = config["variants"]["temperature"]["values"]
         base_top_p = config["variants"]["temperature"]["base_top_p"]
         for t in temps:
+            # Start with defaults, then override
+            kwargs = default_kwargs.copy()
+            kwargs.update({"temperature": t, "top_p": base_top_p, "do_sample": True})
             tasks.append({
                 "name": f"machine_T{t}_p{base_top_p}",
-                "kwargs": {"temperature": t, "top_p": base_top_p, "do_sample": True}
+                "kwargs": kwargs
             })
             
     if args.mode in ["topp", "all"]:
         top_ps = config["variants"]["top_p"]["values"]
         base_temp = config["variants"]["top_p"]["base_temperature"]
         for p in top_ps:
+            kwargs = default_kwargs.copy()
+            kwargs.update({"temperature": base_temp, "top_p": p, "do_sample": True})
             tasks.append({
                 "name": f"machine_T{base_temp}_p{p}",
-                "kwargs": {"temperature": base_temp, "top_p": p, "do_sample": True}
+                "kwargs": kwargs
             })
             
     if args.mode in ["decoding", "all"]:
         strategies = config["variants"]["decoding_strategies"]
         for s in strategies:
+            # Start with defaults
+            kwargs = default_kwargs.copy()
+            # Override with strategy-specific settings
+            strategy_kwargs = {k: v for k, v in s.items() if k != 'name'}
+            kwargs.update(strategy_kwargs)
+            
             tasks.append({
                 "name": f"machine_{s['name']}",
-                "kwargs": {k: v for k, v in s.items() if k != 'name'}
+                "kwargs": kwargs
             })
 
     # Execute Generation Tasks
+    import time
+    total_start_time = time.time()
+    
     for task in tasks:
+        task_start_time = time.time()
         col_name = task["name"]
         gen_kwargs = task["kwargs"]
-        logger.info(f"Generating {col_name} with args: {gen_kwargs}")
         
-        # Check if column already exists to avoid re-generation (optional)
-        # if col_name in master_table[0]:
-        #     logger.info(f"Column {col_name} already exists. Skipping.")
-        #     continue
-            
+        logger.info(f"--- Starting Task: {col_name} ---")
+        logger.info(f"Configuration: {json.dumps(gen_kwargs, indent=2)}")
+        
+        # Check if column already exists
+        if len(master_table) > 0 and col_name in master_table[0]:
+             logger.warning(f"Column '{col_name}' already exists in master table. Overwriting...")
+
         generated_texts = []
-        for i in tqdm(range(0, len(prompts), batch_size)):
+        for i in tqdm(range(0, len(prompts), batch_size), desc=f"Generating {col_name}"):
             batch_prompts = prompts[i:i+batch_size]
             batch_texts = generator.generate(
                 batch_prompts, 
@@ -109,7 +131,12 @@ def main():
         # Save intermediate results
         save_jsonl(master_table, args.master_table)
         
-    logger.info("Generation complete. Master table updated.")
+        task_duration = time.time() - task_start_time
+        logger.info(f"Task {col_name} completed in {task_duration:.2f} seconds ({task_duration/60:.2f} minutes).")
+        
+    total_duration = time.time() - total_start_time
+    logger.info(f"All generation tasks completed in {total_duration:.2f} seconds ({total_duration/3600:.2f} hours).")
+    logger.info("Master table updated.")
 
 if __name__ == "__main__":
     main()

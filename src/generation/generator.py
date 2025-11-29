@@ -21,7 +21,7 @@ class VariantGenerator:
             logger.error(f"Failed to load model {model_name}: {e}")
             raise
 
-    def generate(self, prompts, max_new_tokens=200, **kwargs):
+    def generate(self, prompts, max_new_tokens=256, **kwargs):
         """
         Generate text variants.
         
