@@ -3,8 +3,13 @@
 
 dataset:
   name: "turingbench"
-  hf_path: "turingbench/TuringBench" # Adjust if different on HF
+  hf_path: "turingbench/TuringBench" # Legacy/Reference
   cache_dir: "data/hf_cache"
+
+local:
+  zip_path: "data/turingbench.zip"
+  extract_dir: "data/raw_turingbench"
+  consolidated_csv: "data/human_turingbench.csv"
 
 splitting:
   seed: 42

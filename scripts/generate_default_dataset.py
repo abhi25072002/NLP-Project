@@ -43,7 +43,16 @@ def main():
     # 1. Load TuringBench (Human Only)
     logger.info("Loading TuringBench dataset...")
     try:
-        ds = load_dataset(data_config["dataset"]["hf_path"], split="train", cache_dir=data_config["dataset"]["cache_dir"])
+        # Load local CSV prepared by prepare_local_turingbench.py
+        local_csv = data_config.get("local", {}).get("consolidated_csv", "data/human_turingbench.csv")
+        logger.info(f"Loading local data from {local_csv}")
+        ds = load_dataset("csv", data_files=local_csv, split="train")
+        
+        # Rename 'Generation' to 'text' for compatibility if needed, or handle in create_master_table
+        # create_master_table expects 'text' and 'src' (or we filter earlier)
+        # The local CSV has 'Generation' and 'label'
+        ds = ds.rename_column("Generation", "text")
+        ds = ds.rename_column("label", "src")
     except Exception as e:
         logger.error(f"Failed to load dataset: {e}")
         return
