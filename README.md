@@ -109,10 +109,10 @@ To avoid **Disk Quota Exceeded** errors and ensure access to gated models (Llama
 
 ```bash
 # 1. Set Cache to Scratch (Replace with your actual scratch path)
-export HF_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf_home
-export TRANSFORMERS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/hf_cache
-export HF_DATASETS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/data_cache
-export XDG_CACHE_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf_cache
+export HF_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf/hf_home
+export TRANSFORMERS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/hf/hf_cache
+export HF_DATASETS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/hf/data_cache
+export XDG_CACHE_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf/hf_cache
 mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE $XDG_CACHE_HOME
 
 # 2. Authenticate with Hugging Face (Required for Llama-2)
