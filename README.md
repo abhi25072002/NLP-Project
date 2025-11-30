@@ -64,7 +64,7 @@ project_root/
 │   └── tables/
 ├── scripts/
 │   ├── load_turingbench.py
-│   ├── create_splits.py
+│   ├── create_supervised_datasets.py
 │   ├── generate_variants.py
 │   ├── train_tfidf.py
 │   ├── train_cnn.py
@@ -103,6 +103,21 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### 🔑 Hugging Face Setup (Required)
+
+To download the Llama-2 model and other gated resources, you must:
+
+1.  **Create a Hugging Face Token**:
+    *   Go to [Hugging Face Settings > Tokens](https://huggingface.co/settings/tokens).
+    *   Click **"Create new token"**.
+    *   Select **"Read"** (or "Fine-grained" with Read permissions).
+    *   Copy this token; you will need it for the environment setup below.
+
+2.  **Request Access to Llama-2**:
+    *   Visit the [meta-llama/Llama-2-7b-hf](https://huggingface.co/meta-llama/Llama-2-7b-hf) model page.
+    *   Accept the license agreement and request access.
+    *   Wait for the approval email (usually fast).
+
 ### ⚠️ Critical Environment Setup (PACE/HPC)
 
 To avoid **Disk Quota Exceeded** errors and ensure access to gated models (Llama-2), run these commands **before** running any scripts:
@@ -119,6 +134,20 @@ mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE $XDG_CACHE_HOME
 export HF_TOKEN="your_hf_token_here"
 # OR run: huggingface-cli login
 ```
+
+---
+
+## ⚙️ Configuration
+
+### Calibrating the "Knobs"
+
+You can customize all generation parameters in **`configs/generation_config.yaml`**.
+
+**Key settings to tweak:**
+- **`default`**: The baseline settings for `machine_default` (e.g., `temperature: 0.7`).
+- **`variants.temperature.values`**: List of temperatures to test (e.g., `[0.1, 1.0, 1.5]`).
+- **`variants.top_p.values`**: List of top-p values (e.g., `[0.9, 0.99]`).
+- **`generator_model`**: Change the model used for generation (e.g., `gpt2-xl`, `opt-1.3b`).
 
 ---
 
@@ -182,23 +211,7 @@ python scripts/create_supervised_datasets.py
 - **Knobbed Test Sets** (`data/supervised/knobs/`): Test sets for each OOD variant (e.g., `test_T0.1_p0.9.jsonl`).
 - **Back-Translation Sets** (`data/supervised/backtrans/`): Test sets for paraphrase attacks.
 
-### 5. Calibrating the "Knobs"
-
-You can customize all generation parameters in **`configs/generation_config.yaml`**.
-
-**Key settings to tweak:**
-- **`default`**: The baseline settings for `machine_default` (e.g., `temperature: 0.7`).
-- **`variants.temperature.values`**: List of temperatures to test (e.g., `[0.1, 1.0, 1.5]`).
-- **`variants.top_p.values`**: List of top-p values (e.g., `[0.9, 0.99]`).
-- **`generator_model`**: Change the model used for generation (e.g., `gpt2-xl`, `opt-1.3b`).
-
-### 4. Paraphrase Attack (Back-Translation)
-
-```bash
-python scripts/backtranslate.py
-```
-
-### 3. Train supervised models
+### 5. Train supervised models
 
 **TF-IDF + LR:**
 
@@ -218,13 +231,13 @@ python scripts/train_cnn.py
 python scripts/train_roberta.py
 ```
 
-### 4. Score using Binoculars
+### 6. Score using Binoculars
 
 ```bash
 python scripts/score_binoculars.py
 ```
 
-### 5. Evaluate all models on all test sets
+### 7. Evaluate all models on all test sets
 
 ```bash
 python scripts/evaluate_all.py
