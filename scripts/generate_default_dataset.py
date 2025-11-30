@@ -77,7 +77,7 @@ def main():
     logger.info(f"Generating machine_default with: {default_cfg}")
     
     prompts = [row['prompt'] for row in master_table]
-    batch_size = 8 # Adjust based on GPU
+    batch_size = 64 # Adjust based on GPU
     
     generated_texts = []
     for i in tqdm(range(0, len(prompts), batch_size), desc="Generating Default Variants"):
