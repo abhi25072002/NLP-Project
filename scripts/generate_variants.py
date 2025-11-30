@@ -49,7 +49,7 @@ def main():
     
     # Prepare prompts
     # We process in batches for efficiency
-    batch_size = 8 # Adjust based on GPU memory
+    batch_size = 64 # Adjust based on GPU memory
     prompts = [row['prompt'] for row in master_table]
     
     # ... (previous code)
