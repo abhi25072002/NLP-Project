@@ -103,18 +103,37 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### ⚠️ Critical Environment Setup (PACE/HPC)
+
+To avoid **Disk Quota Exceeded** errors and ensure access to gated models (Llama-2), run these commands **before** running any scripts:
+
+```bash
+# 1. Set Cache to Scratch (Replace with your actual scratch path)
+export HF_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf_home
+export TRANSFORMERS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/hf_cache
+export HF_DATASETS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/data_cache
+export XDG_CACHE_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf_cache
+mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE $XDG_CACHE_HOME
+
+# 2. Authenticate with Hugging Face (Required for Llama-2)
+export HF_TOKEN="your_hf_token_here"
+# OR run: huggingface-cli login
+```
+
 ---
 
 ## 📥 Dataset: TuringBench
+Due to the Hugging Face dataset script being deprecated, we use a local copy of the dataset.
 
-We load TuringBench using HuggingFace:
+1.  **Download** `turingbench.zip` (e.g., from Canvas or shared drive).
+2.  **Upload** it to the `data/` directory.
+3.  **Prepare** the data:
 
-```python
-from datasets import load_dataset
-ds = load_dataset("turingbench", split="train")
+```bash
+python scripts/prepare_local_turingbench.py
 ```
 
-Splits (train/dev/test) are stored as index lists in `data/splits/`.
+This extracts the data and consolidates the human texts into `data/human_turingbench.csv`.
 
 ---
 
