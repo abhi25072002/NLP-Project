@@ -13,7 +13,8 @@ import argparse
 import logging
 import yaml
 import os
-# from transformers import RobertaForSequenceClassification, Trainer, TrainingArguments
+from src.data.loader import load_turingbench
+from src.models.roberta import train_roberta
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,25 +30,28 @@ def main():
     args = parser.parse_args()
     
     config = load_config(args.config)
-    params = config["supervised"]["roberta"]
+    training_config = config["training"]
     
     logger.info("Fine-tuning RoBERTa model...")
     
-    # TODO: Load dataset and tokenizer
+    # Load dataset
+    logger.info("Loading data...")
+    dataset = load_turingbench(split="train")
     
-    # TODO: Initialize Model
-    # model = RobertaForSequenceClassification.from_pretrained(params["model_name"])
+    # Split into train/val
+    logger.info("Splitting data...")
+    train_test_split = dataset.train_test_split(test_size=0.2, seed=training_config["seed"])
+    train_dataset = train_test_split['train']
+    val_dataset = train_test_split['test']
     
-    # TODO: Define Training Arguments
-    # training_args = TrainingArguments(...)
+    logger.info(f"Train size: {len(train_dataset)}, Val size: {len(val_dataset)}")
     
-    # TODO: Initialize Trainer and Train
-    # trainer = Trainer(...)
-    # trainer.train()
+    # Train
+    trainer = train_roberta(train_dataset, val_dataset, config)
     
-    # TODO: Save model
-    output_dir = os.path.join(config["training"]["output_dir"], "roberta")
-    # trainer.save_model(output_dir)
+    # Save model
+    output_dir = os.path.join(training_config["output_dir"], "roberta")
+    trainer.save_model(output_dir)
     
     logger.info(f"Model saved to {output_dir}")
 

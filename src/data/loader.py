@@ -11,4 +11,7 @@ def load_turingbench(split="train", cache_dir=None):
     Returns:
         Dataset object.
     """
-    pass
+    from datasets import load_dataset
+    # Default to the path found in config if not provided, but here we hardcode or use a default
+    dataset_path = "turingbench/TuringBench" 
+    return load_dataset(dataset_path, split=split, cache_dir=cache_dir)

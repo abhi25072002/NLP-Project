@@ -10,14 +10,15 @@ Usage:
     python scripts/train_tfidf.py
 """
 
+
+
 import argparse
 import logging
 import yaml
 import os
 import joblib
-# from sklearn.feature_extraction.text import TfidfVectorizer
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.metrics import classification_report
+from src.data.loader import load_turingbench
+from src.models.tfidf import train_tfidf_lr
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -33,24 +34,34 @@ def main():
     args = parser.parse_args()
     
     config = load_config(args.config)
-    params = config["supervised"]["tfidf_lr"]
     
     logger.info("Training TF-IDF + LR model...")
     
-    # TODO: Load training data
+    # Load training data
+    logger.info("Loading data...")
+    dataset = load_turingbench(split="train")
     
-    # TODO: Initialize Vectorizer and Classifier
-    # vectorizer = TfidfVectorizer(...)
-    # clf = LogisticRegression(...)
+    texts = dataset["text"]
+    labels = dataset["label"]
     
-    # TODO: Train pipeline
-    # X_train = vectorizer.fit_transform(texts)
-    # clf.fit(X_train, labels)
+    logger.info(f"Loaded {len(texts)} samples.")
     
-    # TODO: Save model
+    # Train pipeline
+    logger.info("Training pipeline...")
+    pipeline = train_tfidf_lr(texts, labels, config)
+    
+    # Save model
     output_dir = os.path.join(config["training"]["output_dir"], "tfidf_lr")
     os.makedirs(output_dir, exist_ok=True)
-    # joblib.dump(pipeline, os.path.join(output_dir, "model.joblib"))
+    
+    model_path = os.path.join(output_dir, "model.joblib")
+    joblib.dump(pipeline, model_path)
+    
+    # Also save vectorizer separately if needed, but pipeline has it.
+    # The prompt asked for "model.joblib, vectorizer *.joblib".
+    # I'll save the vectorizer separately too.
+    vectorizer_path = os.path.join(output_dir, "vectorizer.joblib")
+    joblib.dump(pipeline.named_steps['tfidf'], vectorizer_path)
     
     logger.info(f"Model saved to {output_dir}")
 
