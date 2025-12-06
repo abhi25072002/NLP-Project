@@ -1,0 +1,8 @@
+pandas
+numpy
+scikit-learn
+tqdm
+transformers
+torch
+accelerate
+# binoculars # Install from git: pip install git+https://github.com/ahans30/Binoculars.git
