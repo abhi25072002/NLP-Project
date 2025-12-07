@@ -27,14 +27,6 @@ def create_master_table(dataset, prompt_length=50, max_length=512):
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
     
     for i, entry in enumerate(dataset):
-        # TuringBench structure: 'text', 'label', 'src' (generator name)
-        # We only want human texts to start with (label usually 0 or 'human')
-        # Adjust based on actual TuringBench structure. 
-        # Assuming we filter for human texts first if we want to generate from them.
-        # However, TuringBench has both. The user plan says:
-        # "Start from N human texts (TuringBench)."
-        
-        # Check if it's human
         if entry['src'] != 'human':
             continue
             

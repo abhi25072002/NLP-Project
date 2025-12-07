@@ -2,19 +2,6 @@
 import json
 import os
 
-def load_turingbench(split="train", cache_dir=None):
-    """
-    Load the TuringBench dataset.
-    
-    Args:
-        split (str): Dataset split to load.
-        cache_dir (str): Directory to cache the dataset.
-        
-    Returns:
-        Dataset object.
-    """
-    pass
-
 def load_supervised_data(data_dir, split="train"):
     """
     Load supervised data from jsonl files.

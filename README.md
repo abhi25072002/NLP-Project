@@ -37,9 +37,7 @@ To study the robustness of AI text detectors under distributional shifts such as
 - Produces complete evaluation metrics:
     - Accuracy, AUROC, AUPRC
     - TPR@0.01%FPR
-    - Calibration (ECE + reliability plots)
     - Cross-Perplexity, Cross-KL, JS Divergence (LM models only)
-    - Ablation experiments for both Binoculars and supervised detectors
     - Evolution heatmaps summarizing robustness degradation
 
 ---
@@ -124,10 +122,10 @@ To avoid **Disk Quota Exceeded** errors and ensure access to gated models (Llama
 
 ```bash
 # 1. Set Cache to Scratch (Replace with your actual scratch path)
-export HF_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf/hf_home
-export TRANSFORMERS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/hf/hf_cache
-export HF_DATASETS_CACHE=/home/hice1/ajd6/scratch/NLP-Project/hf/data_cache
-export XDG_CACHE_HOME=/home/hice1/ajd6/scratch/NLP-Project/hf/hf_cache
+export HF_HOME=/home/hice1/{gtusername}/scratch/NLP-Project/hf/hf_home
+export TRANSFORMERS_CACHE=/home/hice1/{gtusername}/scratch/NLP-Project/hf/hf_cache
+export HF_DATASETS_CACHE=/home/hice1/{gtusername}/scratch/NLP-Project/hf/data_cache
+export XDG_CACHE_HOME=/home/hice1/{gtusername}/scratch/NLP-Project/hf/hf_cache
 mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE $XDG_CACHE_HOME
 
 # 2. Authenticate with Hugging Face (Required for Llama-2)
@@ -257,7 +255,6 @@ Outputs are saved in:
 - AUPRC
 - TPR at fixed low FPR (0.01%, 0.1%)
 - FPR at fixed TPR
-- Calibration (ECE + reliability diagram)
 
 **Only LM-based methods (Binoculars / Causal LMs):**
 - Perplexity
@@ -270,26 +267,7 @@ Outputs are saved in:
 
 ---
 
-## 🔬 Ablation Studies
 
-**Binoculars Ablations**
-- Observer/Performer model pairs
-- max_token_observed
-- Score formula variants
-- Truncation strategy variations
-- Thresholding strategies
-
-**Supervised Ablations**
-- Training set size
-- Removing generator classes (held-out generator)
-- TF-IDF: word vs char vs hybrid
-- CNN: embedding variants
-- RoBERTa: seq length 128/256/512
-- Augmented vs non-augmented training
-
-All ablations are configured via `configs/ablation_config.yaml`.
-
----
 
 ## 📊 Outputs & Reports
 
@@ -315,10 +293,11 @@ You will obtain:
 
 ## 👥 Contributors
 
-Add your team names here.
+- Abhishek Dharmadhikari
+- Neel Shah
+- Vishrut Goel
+- Aditya Pandit
 
 ---
 
-## 📜 License
 
-Specify license here (MIT recommended).
