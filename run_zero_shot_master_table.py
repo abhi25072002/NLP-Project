@@ -42,7 +42,11 @@ def compute_scores_batched(bino, texts, batch_size=32, compute_token_metrics=Fal
             
     return results
 
-def calculate_metrics(human_scores, ai_scores, threshold=None):
+def calculate_metrics(human_scores, ai_scores, 
+                      human_ppl=None, ai_ppl=None,
+                      human_x_ppl=None, ai_x_ppl=None,
+                      human_kl=None, ai_kl=None,
+                      human_jsd=None, ai_jsd=None):
     # Binoculars: Lower score = AI.
     # For ROC AUC, we usually want Higher score = Positive (AI).
     # So we use -score as the prediction score for AI class.
@@ -135,7 +139,22 @@ def main():
         ai_results = compute_scores_batched(bino, ai_texts, batch_size=args.batch_size, compute_token_metrics=args.compute_token_metrics)
         ai_scores = ai_results["score"]
         
-        metrics = calculate_metrics(human_scores, ai_scores)
+        # Extract components for aggregation
+        ai_ppl = ai_results["ppl"]
+        ai_x_ppl = ai_results["x_ppl"]
+        ai_kl = ai_results.get("kl")
+        ai_jsd = ai_results.get("jsd")
+        
+        human_ppl = human_results["ppl"]
+        human_x_ppl = human_results["x_ppl"]
+        human_kl = human_results.get("kl")
+        human_jsd = human_results.get("jsd")
+        
+        metrics = calculate_metrics(human_scores, ai_scores,
+                                    human_ppl=human_ppl, ai_ppl=ai_ppl,
+                                    human_x_ppl=human_x_ppl, ai_x_ppl=ai_x_ppl,
+                                    human_kl=human_kl, ai_kl=ai_kl,
+                                    human_jsd=human_jsd, ai_jsd=ai_jsd)
         metrics['config'] = col
         results.append(metrics)
         
