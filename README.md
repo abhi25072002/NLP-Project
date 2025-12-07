@@ -6,7 +6,7 @@ The project is structured to be reproducible, modular, and suitable for academic
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 
 ### Goal
 
@@ -28,7 +28,7 @@ To study the robustness of AI text detectors under distributional shifts such as
 
 ---
 
-## 🧰 Key Features
+## Key Features
 - Loads TuringBench directly from HuggingFace (no JSONL input required)
 - Generates temperature & top-p variants using rewriting prompts
 - Performs back-translation using MarianMT
@@ -36,13 +36,11 @@ To study the robustness of AI text detectors under distributional shifts such as
 - Implements Binoculars scoring and token-level metrics
 - Produces complete evaluation metrics:
     - Accuracy, AUROC, AUPRC
-    - TPR@0.01%FPR
+    - TPR@1%FPR
     - Cross-Perplexity, Cross-KL, JS Divergence (LM models only)
-    - Evolution heatmaps summarizing robustness degradation
-
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 project_root/
@@ -58,11 +56,6 @@ project_root/
 │   │   ├── backtrans/
 │   │   ├── base/
 │   │   └── knobs/
-
-├── notebooks/
-├── reports/
-│   ├── figs/
-│   └── tables/
 ├── scripts/
 │   ├── load_turingbench.py
 │   ├── create_supervised_datasets.py
@@ -86,7 +79,7 @@ project_root/
 
 ---
 
-## 📂 Data Organization
+## Data Organization
 
 The supervised data is organized into three main categories within `data/supervised/`:
 
@@ -118,7 +111,7 @@ data/supervised/
 
 ---
 
-## 📦 Installation
+##  Installation
 
 Clone the repo:
 
@@ -135,7 +128,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 🔑 Hugging Face Setup (Required)
+### Hugging Face Setup (Required)
 
 To download the Llama-2 model and other gated resources, you must:
 
@@ -150,7 +143,7 @@ To download the Llama-2 model and other gated resources, you must:
     *   Accept the license agreement and request access.
     *   Wait for the approval email (usually fast).
 
-### ⚠️ Critical Environment Setup (PACE/HPC)
+### Critical Environment Setup (PACE/HPC)
 
 To avoid **Disk Quota Exceeded** errors and ensure access to gated models (Llama-2), run these commands **before** running any scripts:
 
@@ -169,7 +162,7 @@ export HF_TOKEN="your_hf_token_here"
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Calibrating the "Knobs"
 
@@ -183,7 +176,7 @@ You can customize all generation parameters in **`configs/generation_config.yaml
 
 ---
 
-## 📥 Dataset: TuringBench
+## Dataset: TuringBench
 Due to the Hugging Face dataset script being deprecated, we use a local copy of the dataset.
 
 1.  **Download** `turingbench.zip` (e.g., from Canvas or shared drive).
@@ -287,8 +280,7 @@ python scripts/eval_roberta.py --model_path checkpoints/roberta/best_model
 - Accuracy
 - AUROC
 - AUPRC
-- TPR at fixed low FPR (0.01%, 0.1%)
-- FPR at fixed TPR
+- TPR at fixed low FPR (1%)
 
 **Only LM-based methods (Binoculars / Causal LMs):**
 - Perplexity
@@ -300,14 +292,7 @@ python scripts/eval_roberta.py --model_path checkpoints/roberta/best_model
 - Binoculars score = PPL / Cross-PPL
 
 ---
-
-
-
-
-
----
-
-## 🧵 Reproducibility
+## Reproducibility
 - All random seeds fixed
 - All splits saved as JSON
 - All generated variants stored on disk
@@ -316,7 +301,7 @@ python scripts/eval_roberta.py --model_path checkpoints/roberta/best_model
 
 ---
 
-## 👥 Contributors
+## Contributors
 
 - Abhishek Dharmadhikari
 - Neel Shah
