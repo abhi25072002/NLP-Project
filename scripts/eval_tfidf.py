@@ -121,9 +121,7 @@ def main():
     
     logger.info("Model loaded.")
     
-    # Find all jsonl files
     search_dir = args.data_dir
-    # Simple fallback check similar to eval_cnn
     if not os.path.exists(search_dir):
          # Try project root relative
          candidate = os.path.join("data", "supervised", "knobs")

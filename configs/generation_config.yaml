@@ -3,11 +3,8 @@
 
 # Base model for generation (can be different from detection models)
 generator_model:
-  name: "meta-llama/Llama-2-7b-chat-hf" # Recommended: "meta-llama/Llama-2-13b-chat-hf" or "meta-llama/Meta-Llama-3-8B-Instruct" if GPU allows
+  name: "meta-llama/Llama-2-7b-chat-hf"
   device: "cuda"
-  # Note: You need a HuggingFace token for Llama models. Run `huggingface-cli login` first.
-
-
 
 # Default generation settings (for machine_default)
 default:
