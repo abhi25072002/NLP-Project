@@ -1,15 +1,15 @@
-# src/models/roberta.py
+from transformers import RobertaForSequenceClassification, RobertaTokenizerFast
 
-def train_roberta(train_dataset, val_dataset, config):
+def get_roberta_model(model_name="roberta-base", num_labels=2):
     """
-    Fine-tune RoBERTa model.
-    
-    Args:
-        train_dataset: Training dataset.
-        val_dataset: Validation dataset.
-        config (dict): Model configuration.
-        
-    Returns:
-        trainer: HuggingFace Trainer object.
+    Initialize RoBERTa model for sequence classification.
     """
-    pass
+    model = RobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+    return model
+
+def get_tokenizer(model_name="roberta-base"):
+    """
+    Initialize RoBERTa tokenizer.
+    """
+    tokenizer = RobertaTokenizerFast.from_pretrained(model_name)
+    return tokenizer
