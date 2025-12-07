@@ -92,6 +92,7 @@ def main():
     parser.add_argument("--performer_model", type=str, default="tiiuae/falcon-7b-instruct", help="Performer model")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of examples for testing")
     parser.add_argument("--compute_token_metrics", action="store_true", help="Compute KL and JSD metrics (slower)")
+    parser.add_argument("--configs", type=str, nargs="+", default=None, help="Specific AI configs (columns) to run. If None, runs all.")
     
     args = parser.parse_args()
     
@@ -102,6 +103,13 @@ def main():
     print(f"Loaded {len(data)} examples.")
     
     ai_columns = get_ai_columns(data)
+    if args.configs:
+        # Validate configs
+        missing = [c for c in args.configs if c not in ai_columns]
+        if missing:
+            raise ValueError(f"Configs {missing} not found in data. Available: {ai_columns}")
+        ai_columns = args.configs
+        
     print(f"Found AI columns: {ai_columns}")
     
     print("Initializing Binoculars...")
