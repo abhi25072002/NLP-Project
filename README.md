@@ -50,11 +50,14 @@ project_root/
 │   ├── data_config.yaml
 │   ├── model_config.yaml
 │   ├── generation_config.yaml
-│   ├── eval_config.yaml
-│   └── ablation_config.yaml
+│   └── eval_config.yaml
 ├── data/
 │   ├── hf_cache/
 │   ├── splits/
+│   ├── supervised/
+│   │   ├── backtrans/
+│   │   ├── base/
+│   │   └── knobs/
 
 ├── notebooks/
 ├── reports/
@@ -67,19 +70,50 @@ project_root/
 │   ├── train_tfidf.py
 │   ├── train_cnn.py
 │   ├── train_roberta.py
-│   ├── score_binoculars.py
-│   ├── evaluate_all.py
+│   ├── eval_tfidf.py
+│   ├── eval_cnn.py
+│   ├── eval_roberta.py
 │   └── backtranslate.py
 ├── src/
 │   ├── data/
 │   ├── generation/
 │   ├── models/
 │   ├── binoculars/
-│   ├── eval/
-│   ├── utils/
-│   └── ablation/
+│   └── utils/
 ├── requirements.txt
 └── README.md
+```
+
+---
+
+## 📂 Data Organization
+
+The supervised data is organized into three main categories within `data/supervised/`:
+
+```
+data/supervised/
+├── backtrans
+│   ├── test_bt_attack.jsonl
+│   └── test_bt_both.jsonl
+├── base
+│   ├── test.jsonl
+│   ├── train.jsonl
+│   └── val.jsonl
+└── knobs
+    ├── test_T0.1_p0.95.jsonl
+    ├── test_T0.3_p0.95.jsonl
+    ├── test_T0.5_p0.95.jsonl
+    ├── test_T0.7_p0.8.jsonl
+    ├── test_T0.7_p0.9.jsonl
+    ├── test_T0.7_p0.95.jsonl
+    ├── test_T0.7_p0.99.jsonl
+    ├── test_T1.0_p0.95.jsonl
+    ├── test_T1.2_p0.95.jsonl
+    ├── test_T1.5_p0.95.jsonl
+    ├── test_beam_search.jsonl
+    ├── test_default_BT.jsonl
+    ├── test_greedy.jsonl
+    └── test_top_k_50.jsonl
 ```
 
 ---
@@ -232,18 +266,18 @@ python scripts/train_roberta.py
 ### 6. Score using Binoculars
 
 ```bash
-python scripts/score_binoculars.py
+# Refer to src/binoculars/ for usage
 ```
 
 ### 7. Evaluate all models on all test sets
 
 ```bash
-python scripts/evaluate_all.py
+python scripts/eval_tfidf.py --model_path checkpoints/tfidf_lr/model.joblib
+python scripts/eval_cnn.py --model_path checkpoints/cnn/best_model.pt
+python scripts/eval_roberta.py --model_path checkpoints/roberta/best_model
 ```
 
-Outputs are saved in:
-- `reports/tables/`
-- `reports/figs/`
+
 
 ---
 
@@ -269,16 +303,7 @@ Outputs are saved in:
 
 
 
-## 📊 Outputs & Reports
 
-You will obtain:
-- ROC and PR curves
-- Low-FPR zoomed ROC
-- Calibration curves
-- JS divergence & cross-KL distributions
-- Evolution matrix heatmaps
-- Tables of all metrics across all model × dataset-variant combinations
-- Final PDF report in `reports/final_report.pdf`
 
 ---
 
