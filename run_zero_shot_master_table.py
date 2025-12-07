@@ -73,6 +73,20 @@ def calculate_metrics(human_scores, ai_scores,
         "std_human_score": np.std(human_scores),
         "std_ai_score": np.std(ai_scores)
     }
+    
+    # Helper to add mean/std for a metric
+    def add_stats(name, human_vals, ai_vals):
+        if human_vals is not None and len(human_vals) > 0:
+            metrics[f"mean_human_{name}"] = np.mean(human_vals)
+            metrics[f"std_human_{name}"] = np.std(human_vals)
+        if ai_vals is not None and len(ai_vals) > 0:
+            metrics[f"mean_ai_{name}"] = np.mean(ai_vals)
+            metrics[f"std_ai_{name}"] = np.std(ai_vals)
+
+    add_stats("ppl", human_ppl, ai_ppl)
+    add_stats("x_ppl", human_x_ppl, ai_x_ppl)
+    add_stats("kl", human_kl, ai_kl)
+    add_stats("jsd", human_jsd, ai_jsd)
 
     # Calculate TPR at specific FPR thresholds
     from sklearn.metrics import roc_curve
