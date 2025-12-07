@@ -26,7 +26,7 @@ CONFIGS=(
     "machine_T1.0_p0.95"
     "machine_T1.2_p0.95"
     "machine_T1.5_p0.95"
-    "machine_default_BT",
+    "machine_default_BT"
     "human_BT"
 )
 
