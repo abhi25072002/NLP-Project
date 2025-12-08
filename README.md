@@ -26,6 +26,10 @@ To study the robustness of AI text detectors under distributional shifts such as
 - CNN (Kim CNN model)
 - RoBERTa-Base fine-tuned
 
+### Resources
+- **Dataset (TuringBench):** [Google Drive Link](https://drive.google.com/drive/folders/1WG-BQv0x6NWoePe6YDeqECrrThxDVMSx?usp=sharing)
+- **Checkpoints:** [Google Drive Link](https://drive.google.com/file/d/1HQ6SmPyjBkdzIhFBgwljxRATO5axjpZZ/view?usp=sharing)
+
 ---
 
 ## Key Features
@@ -179,7 +183,7 @@ You can customize all generation parameters in **`configs/generation_config.yaml
 ## Dataset: TuringBench
 Due to the Hugging Face dataset script being deprecated, we use a local copy of the dataset.
 
-1.  **Download** `turingbench.zip` (e.g., from Canvas or shared drive).
+1.  **Download** `turingbench.zip` (e.g., from [our Drive](https://drive.google.com/drive/folders/1WG-BQv0x6NWoePe6YDeqECrrThxDVMSx?usp=sharing)).
 2.  **Upload** it to the `data/` directory.
 3.  **Prepare** the data:
 
