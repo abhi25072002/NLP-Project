@@ -68,14 +68,7 @@ python scripts/eval_cnn.py --model_path checkpoints/cnn/best_model.pt --data_dir
 python scripts/train_roberta.py
 ```
 
-In-distribution numbers from running exactly those commands on the bundled data (human vs `machine_default`, held-out test prompts):
-
-| Model | Accuracy | F1 | AUROC |
-|---|---|---|---|
-| TF-IDF (word + char n-grams) + LR | 0.9974 | 0.9974 | 0.99997 |
-| Kim CNN | 0.9929 | 0.9929 | 0.9997 |
-
-Near-perfect, as expected in-distribution. The point of the project is that these numbers are the *ceiling*: the shifted test sets (`data/supervised/knobs/`, `data/supervised/backtrans/`) exist to measure how far each detector falls from it, and how Binoculars, which never trains at all, compares.
+Supervised detectors score near-perfect in-distribution; that ceiling is the point. The shifted test sets (`data/supervised/knobs/`, `data/supervised/backtrans/`) exist to measure how far each detector falls from it, and how Binoculars, which never trains at all, compares.
 
 ## Binoculars scoring
 
