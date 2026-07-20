@@ -1,317 +1,162 @@
-# Robust AI-Text Detection under Decoding Shifts and Paraphrase Attacks
+<div align="center">
 
-This repository contains the full experimental pipeline for evaluating Binoculars (zero-shot LM-based detector) and supervised detectors (TF-IDF + Logistic Regression, CNN, RoBERTa) on the TuringBench dataset, including temperature-shift, top-p decoding, paraphrase/backtranslation, and held-out generator robustness experiments.
+<img src="docs/logo.svg" alt="AI-Text Detection - stress-testing LLM-text detectors under decoding shifts" width="820"/>
 
-The project is structured to be reproducible, modular, and suitable for academic reporting.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Dataset](https://img.shields.io/badge/TuringBench-9%2C458%20pairs-7ee787)](https://arxiv.org/abs/2109.13296)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+**Can AI-text detectors survive a change of decoding knobs or a paraphrase attack? This project pits Binoculars (zero-shot, cross-perplexity) against supervised detectors (TF-IDF + LR, Kim CNN, RoBERTa) on matched human/LLM text pairs, then shifts the generation distribution and watches what breaks.**
 
-## Project Overview
+Georgia Tech graduate NLP team project.
 
-### Goal
-
-To study the robustness of AI text detectors under distributional shifts such as:
-- Temperature-based decoding variations
-- Top-p sampling variations
-- Paraphrase attacks (back-translation)
-- Held-out generators unseen in training
-
-### We compare:
-
-**Zero-shot detector:**
-- Binoculars (Observer–Performer cross-perplexity method)
-
-**Supervised detectors:**
-- TF-IDF + Logistic Regression
-- CNN (Kim CNN model)
-- RoBERTa-Base fine-tuned
-
-### Resources
-- **Dataset (TuringBench):** [Google Drive Link](https://drive.google.com/drive/folders/1WG-BQv0x6NWoePe6YDeqECrrThxDVMSx?usp=sharing)
-- **Checkpoints:** [Google Drive Link](https://drive.google.com/file/d/1HQ6SmPyjBkdzIhFBgwljxRATO5axjpZZ/view?usp=sharing)
+</div>
 
 ---
 
-## Key Features
-- Loads TuringBench directly from HuggingFace (no JSONL input required)
-- Generates temperature & top-p variants using rewriting prompts
-- Performs back-translation using MarianMT
-- Implements training/eval pipelines for TF-IDF, CNN, RoBERTa
-- Implements Binoculars scoring and token-level metrics
-- Produces complete evaluation metrics:
-    - Accuracy, AUROC, AUPRC
-    - TPR@1%FPR
-    - Cross-Perplexity, Cross-KL, JS Divergence (LM models only)
----
+## The idea
 
-## Repository Structure
+Supervised detectors look unbeatable when the machine text at test time comes from the same generator settings they trained on. The interesting question is what happens under distribution shift:
 
-```
-project_root/
-├── configs/
-│   ├── data_config.yaml
-│   ├── model_config.yaml
-│   ├── generation_config.yaml
-│   └── eval_config.yaml
-├── data/
-│   ├── hf_cache/
-│   ├── splits/
-│   ├── supervised/
-│   │   ├── backtrans/
-│   │   ├── base/
-│   │   └── knobs/
-├── scripts/
-│   ├── load_turingbench.py
-│   ├── create_supervised_datasets.py
-│   ├── generate_variants.py
-│   ├── train_tfidf.py
-│   ├── train_cnn.py
-│   ├── train_roberta.py
-│   ├── eval_tfidf.py
-│   ├── eval_cnn.py
-│   ├── eval_roberta.py
-│   └── backtranslate.py
-├── src/
-│   ├── data/
-│   ├── generation/
-│   ├── models/
-│   ├── binoculars/
-│   └── utils/
-├── requirements.txt
-└── README.md
+- **Decoding shifts:** temperature sweeps (0.1 to 1.5), top-p sweeps (0.8 to 0.99), greedy, beam search, top-k
+- **Paraphrase attacks:** back-translation through German (MarianMT), applied to the machine side only (an evasion attack) or to both sides
+- **Held-out generators:** machine text from models never seen in training
+
+Every experiment reads from one **master table**: 9,458 human texts from TuringBench, each paired with a Llama-2-7b-chat continuation of the same 50-token prompt. Splits are made at the **prompt level**, so a prompt and all of its variants live in exactly one of train/val/test and nothing leaks.
+
+## Pipeline
+
+```mermaid
+flowchart LR
+    TB[(TuringBench<br/>9,458 human texts)] --> MT[master table<br/>id, prompt, human_text]
+    MT --> GEN[Llama-2-7b-chat<br/>on GT PACE GPUs]
+    GEN --> MD[machine_default<br/>T=0.7, top-p=0.95]
+    GEN --> KN[decoding variants<br/>T and top-p sweeps,<br/>greedy, beam, top-k]
+    MT --> BT[MarianMT<br/>back-translation]
+    MD --> SPL[prompt-level splits<br/>60 / 20 / 20]
+    SPL --> SUP[TF-IDF + LR<br/>Kim CNN, RoBERTa]
+    KN & BT --> TEST[shifted test sets]
+    SUP --> EV[AUROC, F1,<br/>TPR at low FPR]
+    TEST --> EV
+    MD & KN & BT --> BINO[Binoculars<br/>Falcon-7B pair]
+    BINO --> EV
 ```
 
----
+The base dataset (`data/master_table.jsonl`, all 9,458 human/machine pairs) is **bundled in this repo**, so the supervised baselines run out of the box on a laptop CPU. Only variant generation and Binoculars scoring need a GPU.
 
-## Data Organization
-
-The supervised data is organized into three main categories within `data/supervised/`:
-
-```
-data/supervised/
-├── backtrans
-│   ├── test_bt_attack.jsonl
-│   └── test_bt_both.jsonl
-├── base
-│   ├── test.jsonl
-│   ├── train.jsonl
-│   └── val.jsonl
-└── knobs
-    ├── test_T0.1_p0.95.jsonl
-    ├── test_T0.3_p0.95.jsonl
-    ├── test_T0.5_p0.95.jsonl
-    ├── test_T0.7_p0.8.jsonl
-    ├── test_T0.7_p0.9.jsonl
-    ├── test_T0.7_p0.95.jsonl
-    ├── test_T0.7_p0.99.jsonl
-    ├── test_T1.0_p0.95.jsonl
-    ├── test_T1.2_p0.95.jsonl
-    ├── test_T1.5_p0.95.jsonl
-    ├── test_beam_search.jsonl
-    ├── test_default_BT.jsonl
-    ├── test_greedy.jsonl
-    └── test_top_k_50.jsonl
-```
-
----
-
-##  Installation
-
-Clone the repo:
+## Quick start
 
 ```bash
-git clone <your-repo-url>
-cd project_root
-```
-
-Create environment (recommended):
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
+git clone https://github.com/abhi25072002/NLP-Project.git
+cd NLP-Project
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-```
 
-### Hugging Face Setup (Required)
-
-To download the Llama-2 model and other gated resources, you must:
-
-1.  **Create a Hugging Face Token**:
-    *   Go to [Hugging Face Settings > Tokens](https://huggingface.co/settings/tokens).
-    *   Click **"Create new token"**.
-    *   Select **"Read"** (or "Fine-grained" with Read permissions).
-    *   Copy this token; you will need it for the environment setup below.
-
-2.  **Request Access to Llama-2**:
-    *   Visit the [meta-llama/Llama-2-7b-hf](https://huggingface.co/meta-llama/Llama-2-7b-hf) model page.
-    *   Accept the license agreement and request access.
-    *   Wait for the approval email (usually fast).
-
-### Critical Environment Setup (PACE/HPC)
-
-To avoid **Disk Quota Exceeded** errors and ensure access to gated models (Llama-2), run these commands **before** running any scripts:
-
-```bash
-# 1. Set Cache to Scratch (Replace with your actual scratch path)
-export HF_HOME=/home/hice1/{gtusername}/scratch/NLP-Project/hf/hf_home
-export TRANSFORMERS_CACHE=/home/hice1/{gtusername}/scratch/NLP-Project/hf/hf_cache
-export HF_DATASETS_CACHE=/home/hice1/{gtusername}/scratch/NLP-Project/hf/data_cache
-export XDG_CACHE_HOME=/home/hice1/{gtusername}/scratch/NLP-Project/hf/hf_cache
-mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE $XDG_CACHE_HOME
-
-# 2. Authenticate with Hugging Face (Required for Llama-2)
-export HF_TOKEN="your_hf_token_here"
-# OR run: huggingface-cli login
-```
-
----
-
-## Configuration
-
-### Calibrating the "Knobs"
-
-You can customize all generation parameters in **`configs/generation_config.yaml`**.
-
-**Key settings to tweak:**
-- **`default`**: The baseline settings for `machine_default` (e.g., `temperature: 0.7`).
-- **`variants.temperature.values`**: List of temperatures to test (e.g., `[0.1, 1.0, 1.5]`).
-- **`variants.top_p.values`**: List of top-p values (e.g., `[0.9, 0.99]`).
-- **`generator_model`**: Change the model used for generation (e.g., `gpt2-xl`, `opt-1.3b`).
-
----
-
-## Dataset: TuringBench
-Due to the Hugging Face dataset script being deprecated, we use a local copy of the dataset.
-
-1.  **Download** `turingbench.zip` (e.g., from [our Drive](https://drive.google.com/drive/folders/1WG-BQv0x6NWoePe6YDeqECrrThxDVMSx?usp=sharing)).
-2.  **Upload** it to the `data/` directory.
-3.  **Prepare** the data:
-
-```bash
-python scripts/prepare_local_turingbench.py
-```
-
-This extracts the data and consolidates the human texts into `data/human_turingbench.csv`.
-
----
-
-## 🔧 How to Run the Pipeline
-
-### 1. Create Base Dataset (Human + Machine Default)
-
-Run the following command to load TuringBench, create the master table, and generate the baseline machine text (`machine_default`):
-
-```bash
-python scripts/generate_default_dataset.py
-```
-
-**What this does:**
-- Loads human texts from TuringBench.
-- Extracts prompts.
-- Generates `machine_default` text using settings in `configs/generation_config.yaml`.
-- Saves everything to `data/master_table.jsonl`.
-
-### 2. Generate Robustness Variants (OOD)
-
-To test robustness, generate variants with different "knobs" (temperature, top-p, etc.):
-
-```bash
-python scripts/generate_variants.py --mode all
-```
-
-### 3. Generate Back-Translations (Paraphrase Attack)
-
-Run back-translation to create `human_BT` and `machine_default_BT` variants:
-
-```bash
-python scripts/backtranslate.py
-```
-
-### 4. Create Supervised Splits & Test Sets
-
-Finally, create the actual train/val/test files for supervised learning:
-
-```bash
+# 1. Build train/val/test splits from the bundled master table (seconds)
 python scripts/create_supervised_datasets.py
-```
 
-**This creates:**
-- **Base Datasets** (`data/supervised/base/`): Standard Human vs Machine Default.
-- **Knobbed Test Sets** (`data/supervised/knobs/`): Test sets for each OOD variant (e.g., `test_T0.1_p0.9.jsonl`).
-- **Back-Translation Sets** (`data/supervised/backtrans/`): Test sets for paraphrase attacks.
-
-### 5. Train supervised models
-
-**TF-IDF + LR:**
-
-```bash
+# 2. Train and evaluate the TF-IDF + LR baseline (about 15 s on CPU)
 python scripts/train_tfidf.py
-```
+python scripts/eval_tfidf.py --model_path checkpoints/tfidf_lr/model.joblib --data_dir data/supervised/base
 
-**CNN:**
-
-```bash
+# 3. Train and evaluate the Kim CNN (about 10 min on CPU)
 python scripts/train_cnn.py
-```
+python scripts/eval_cnn.py --model_path checkpoints/cnn/best_model.pt --data_dir data/supervised/base
 
-**RoBERTa:**
-
-```bash
+# RoBERTa fine-tuning (GPU recommended)
 python scripts/train_roberta.py
 ```
 
-### 6. Score using Binoculars
+In-distribution numbers from running exactly those commands on the bundled data (human vs `machine_default`, held-out test prompts):
+
+| Model | Accuracy | F1 | AUROC |
+|---|---|---|---|
+| TF-IDF (word + char n-grams) + LR | 0.9974 | 0.9974 | 0.99997 |
+| Kim CNN | 0.9929 | 0.9929 | 0.9997 |
+
+Near-perfect, as expected in-distribution. The point of the project is that these numbers are the *ceiling*: the shifted test sets (`data/supervised/knobs/`, `data/supervised/backtrans/`) exist to measure how far each detector falls from it, and how Binoculars, which never trains at all, compares.
+
+## Binoculars scoring
+
+Zero-shot detection with the [Binoculars](https://arxiv.org/abs/2401.12070) method: score = observer perplexity / cross-perplexity, computed with the Falcon-7B / Falcon-7B-Instruct pair. The runner evaluates every `machine_*` column of the master table against the human side:
 
 ```bash
-# Refer to src/binoculars/ for usage
+python run_zero_shot_master_table.py \
+  --data_path data/master_table.jsonl \
+  --output_path results/full_standard.csv
 ```
 
-### 7. Evaluate all models on all test sets
+`--compute_token_metrics` adds KL and Jensen-Shannon divergence per token; `merge_results.py` aggregates multiple runs into a single Markdown report. See [EXPERIMENTS.md](EXPERIMENTS.md) for all scenarios, flags, and output formats.
+
+## Rebuilding the dataset (GPU)
+
+The bundled master table was generated on Georgia Tech's PACE cluster. To regenerate or extend it:
 
 ```bash
-python scripts/eval_tfidf.py --model_path checkpoints/tfidf_lr/model.joblib
-python scripts/eval_cnn.py --model_path checkpoints/cnn/best_model.pt
-python scripts/eval_roberta.py --model_path checkpoints/roberta/best_model
+# Requires a HuggingFace token with access to meta-llama/Llama-2-7b-hf
+python scripts/prepare_local_turingbench.py     # consolidate TuringBench human texts
+python scripts/generate_default_dataset.py      # 9,458 baseline continuations
+python scripts/generate_variants.py --mode all  # temperature/top-p/decoding variants
+python scripts/backtranslate.py                 # MarianMT paraphrase attack sets
+python scripts/create_supervised_datasets.py    # final train/val/test JSONL files
 ```
 
+On a single PACE GPU, one decoding variant over a 148-prompt subset takes about 38 minutes; the full 9,458-prompt baseline is an overnight job.
 
+<details>
+<summary><b>PACE / HPC environment notes</b> (cache paths, gated models)</summary>
 
----
+```bash
+# Point HuggingFace caches at scratch to avoid home-dir quota errors
+export HF_HOME=~/scratch/NLP-Project/hf/hf_home
+export TRANSFORMERS_CACHE=~/scratch/NLP-Project/hf/hf_cache
+export HF_DATASETS_CACHE=~/scratch/NLP-Project/hf/data_cache
+export XDG_CACHE_HOME=~/scratch/NLP-Project/hf/hf_cache
+mkdir -p $HF_HOME $TRANSFORMERS_CACHE $HF_DATASETS_CACHE $XDG_CACHE_HOME
 
-## 🧪 Evaluation Metrics
+# Llama-2 is gated: accept the license on its model page, then
+export HF_TOKEN="your_hf_token_here"   # or: huggingface-cli login
+```
 
-**All models (supervised + Binoculars):**
-- Accuracy
-- AUROC
-- AUPRC
-- TPR at fixed low FPR (1%)
+</details>
 
-**Only LM-based methods (Binoculars / Causal LMs):**
-- Perplexity
-- Cross-Perplexity
-- Cross-KL Divergence
-- Jensen–Shannon Divergence
-- Token-rank statistics
-- Surprisal curves
-- Binoculars score = PPL / Cross-PPL
+## Repository structure
 
----
-## Reproducibility
-- All random seeds fixed
-- All splits saved as JSON
-- All generated variants stored on disk
-- Experiment configs stored in `configs/*.yaml`
-- Results logged as JSONL & CSV
+```
+NLP-Project/
+├── data/
+│   ├── master_table.jsonl         # 9,458 human/Llama-2 pairs (bundled)
+│   └── human_turingbench.csv      # consolidated TuringBench human texts
+├── configs/                       # generation, model, eval, data YAMLs
+├── scripts/
+│   ├── generate_default_dataset.py, generate_variants.py, backtranslate.py
+│   ├── create_supervised_datasets.py
+│   └── train_/eval_ x {tfidf, cnn, roberta}
+├── src/
+│   ├── binoculars/                # detector, PPL/X-PPL/KL/JSD metrics
+│   ├── models/                    # TF-IDF+LR, Kim CNN, RoBERTa
+│   ├── generation/                # Llama-2 variant generator, MarianMT back-translation
+│   └── data/                      # master-table builder, prompt-level splitter
+├── run_zero_shot_master_table.py  # Binoculars runner (all machine_* columns)
+├── merge_results.py               # aggregate runs into one report
+└── EXPERIMENTS.md                 # Binoculars experiment cookbook
+```
 
----
+Full generated artifacts (variant datasets, checkpoints) live on Drive: [datasets](https://drive.google.com/drive/folders/1WG-BQv0x6NWoePe6YDeqECrrThxDVMSx?usp=sharing) · [checkpoints](https://drive.google.com/file/d/1HQ6SmPyjBkdzIhFBgwljxRATO5axjpZZ/view?usp=sharing).
 
-## Contributors
+## Team
 
-- Abhishek Dharmadhikari
+- [Abhishek Dharmadhikari](https://github.com/abhi25072002)
 - Neel Shah
 - Vishrut Goel
 - Aditya Pandit
 
----
+## References
 
+- Hans et al., [Spotting LLMs with Binoculars: Zero-Shot Detection of Machine-Generated Text](https://arxiv.org/abs/2401.12070) (ICML 2024)
+- Uchendu et al., [TuringBench: A Benchmark Environment for Turing Test in the Age of Neural Text Generation](https://arxiv.org/abs/2109.13296) (EMNLP Findings 2021)
 
+## License
+
+[MIT](LICENSE)

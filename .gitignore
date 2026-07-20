@@ -3,22 +3,30 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
+.venv/
 .env
 
-# HuggingFace
+# HuggingFace caches
 .cache/
+hf/
 
-# Project Data & Logs
+# Generated data (rebuild with the scripts, see README)
 data/hf_cache/
 data/generated/
 data/predictions/
-# Keep splits and master table if you want to version control them, 
-# but usually data is too big.
-data/master_table.jsonl
 data/supervised/
+data/splits/
+
+# Model checkpoints and logs
+checkpoints/
+models/
 logs/
 *.log
 
-# IDE
+# Per-run results
+results/
+
+# IDE / OS
 .vscode/
 .idea/
+.DS_Store

@@ -15,6 +15,11 @@ import yaml
 import os
 import json
 from tqdm import tqdm
+import sys
+
+# Add project root to path so `src` imports work when run as `python scripts/...`
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from src.generation.generator import VariantGenerator
 from src.utils.common import load_jsonl, save_jsonl
 

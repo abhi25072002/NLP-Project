@@ -19,6 +19,11 @@ import os
 import torch
 from tqdm import tqdm
 from datasets import load_dataset
+import sys
+
+# Add project root to path so `src` imports work when run as `python scripts/...`
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from src.data.splitter import create_master_table
 from src.generation.generator import VariantGenerator
 from src.utils.common import save_jsonl

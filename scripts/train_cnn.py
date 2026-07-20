@@ -118,7 +118,7 @@ def evaluate(model, iterator, criterion, device):
 def main():
     parser = argparse.ArgumentParser(description="Train CNN model")
     parser.add_argument("--config", type=str, default="configs/model_config.yaml", help="Path to model config")
-    parser.add_argument("--data_dir", type=str, default="supervised/base", help="Path to data directory")
+    parser.add_argument("--data_dir", type=str, default="data/supervised/base", help="Path to data directory")
     args = parser.parse_args()
     
     config = load_config(args.config)
@@ -137,16 +137,6 @@ def main():
     MAX_LEN = params.get("max_len", 200)
     
     logger.info("Loading data...")
-    # Use the absolute path if provided, or assume relative to current execution
-    # Ideally user provided args.data_dir which should be absolute or correct relative path
-    # Given the user context: c:\Users\91816\Downloads\supervised\supervised\base
-    # I'll default to that if the arg is not passed or relative path doesn't work.
-    
-    # Try provided path first
-    if not os.path.exists(args.data_dir):
-        # Specific user fallback
-        args.data_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "supervised", "supervised", "base"))
-    
     try:
         train_data = load_supervised_data(args.data_dir, "train")
         val_data = load_supervised_data(args.data_dir, "val")

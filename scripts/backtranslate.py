@@ -12,6 +12,11 @@ import logging
 import yaml
 import os
 from tqdm import tqdm
+import sys
+
+# Add project root to path so `src` imports work when run as `python scripts/...`
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from src.generation.paraphrase import BackTranslator
 from src.utils.common import load_jsonl, save_jsonl
 
